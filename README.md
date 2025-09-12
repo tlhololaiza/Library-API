@@ -1,144 +1,95 @@
-📖 Library API
-This is a RESTful API for managing a library system, built with TypeScript and Express.js. It uses an in-memory data store for authors and books. The API is designed to be a simple, yet robust, example of a backend service with a clear structure and a focus on maintainability.
+# 📖 Library API
 
-🚀 Getting Started
-To get the API running on your local machine, follow these steps:
+A RESTful API for managing a simple library system, built with **TypeScript** and **Express.js**.  
+It uses an **in-memory data store** for authors and books and demonstrates clean architecture,
+maintainability, and standardized responses.
 
-Install dependencies:
+---
 
+## 🚀 Getting Started
+
+### Prerequisites
+- **Node.js** v18+  
+- **npm** v8+
+
+### Installation
+Clone the repository and install dependencies:
+```bash
 npm install
+Development Server
+Start the API in development mode (auto-restarts on file changes):
 
-Start the server in development mode:
-
+bash
+Copy code
 npm run dev
-
-The API server will start on http://localhost:3000 and automatically restart whenever you make changes to the source code.
+The server will run at http://localhost:3000.
 
 📝 API Endpoints
-The API endpoints are organized by resource. The base URL for all requests is http://localhost:3000.
+All endpoints are prefixed with http://localhost:3000.
 
-Authors (/authors) ✍️
-Method
+Authors /authors ✍️
+Method	Endpoint	Description
+POST	/	Create a new author.
+GET	/	Retrieve all authors.
+GET	/:id	Retrieve a single author by ID.
+PUT	/:id	Update an author’s details.
+DELETE	/:id	Delete an author (fails if the author has published books).
+GET	/:id/books	List all books by an author (supports ?page & ?limit).
 
-Endpoint
+Books /books 📚
+Method	Endpoint	Description
+POST	/	Create a new book (requires existing authorId).
+GET	/	Retrieve all books with author details.
+GET	/:id	Retrieve a single book by ID.
+PUT	/:id	Update a book’s details.
+DELETE	/:id	Delete a book.
 
-Description
+Search & Statistics /search, /stats 📊
+Method	Endpoint	Description
+GET	/search	Global search across authors and books. Requires ?search query.
+GET	/search/books	Filter books by title, author, year, or genre.
+GET	/search/authors	Search authors by name or birthYear.
+GET	/stats	General library stats (total authors, top genres, prolific author).
+GET	/stats/authors	Detailed statistics for each author.
 
-POST
+🔍 Example Requests
+Create a new author:
 
-/
+bash
+Copy code
+curl -X POST http://localhost:3000/authors \
+-H "Content-Type: application/json" \
+-d '{"name":"Jane Doe","birthYear":1985}'
+Example JSON response:
 
-Creates a new author.
+json
+Copy code
+{
+  "success": true,
+  "data": { "id": "1", "name": "Jane Doe", "birthYear": 1985 },
+  "timestamp": "2025-09-12T08:00:00Z"
+}
+🛡️ Security & Error Handling
+Security Middleware: Rate limiting, request-size limits, and standard HTTP security headers.
 
-GET
+Centralized Error Handler: Uniform 400/404 responses with clear messages.
 
-/
+Standardized Responses: Every response includes success, data, and timestamp.
 
-Retrieves a list of all authors.
+🛠️ Tech Stack
+TypeScript for static typing
 
-GET
+Express.js for routing and middleware
 
-/:id
+In-memory data store (no external DB required)
 
-Retrieves a single author by their unique ID.
+🤝 Contributing
+Fork the repository
 
-PUT
+Create a feature branch (git checkout -b feature/my-feature)
 
-/:id
+Commit your changes (git commit -m 'Add new feature')
 
-Updates an existing author's details.
+Push to the branch (git push origin feature/my-feature)
 
-DELETE
-
-/:id
-
-Deletes an author. Fails if the author has published books.
-
-GET
-
-/:id/books
-
-Lists all books by a specific author. Supports pagination and filtering.
-
-Books (/books) 📚
-Method
-
-Endpoint
-
-Description
-
-POST
-
-/
-
-Creates a new book. Requires an existing authorId.
-
-GET
-
-/
-
-Retrieves a list of all books, with author details.
-
-GET
-
-/:id
-
-Retrieves a single book by its ID.
-
-PUT
-
-/:id
-
-Updates an existing book's details.
-
-DELETE
-
-/:id
-
-Deletes a book.
-
-Search & Statistics (/search, /stats) 📊
-Method
-
-Endpoint
-
-Description
-
-GET
-
-/search
-
-Performs a global search across authors and books. Requires a ?search query parameter.
-
-GET
-
-/search/books
-
-Searches for books using various filters like title, author, year, and genre.
-
-GET
-
-/search/authors
-
-Searches for authors by name or birthYear.
-
-GET
-
-/stats
-
-Provides general library statistics (e.g., total authors, top genres, most prolific author).
-
-GET
-
-/stats/authors
-
-Provides detailed statistics for each author.
-
-🛡️ Security and Error Handling
-The API is equipped with robust features to ensure reliability and security:
-
-Security Middleware: Includes rate limiting, request size limiting, and sets standard HTTP security headers to protect against common attacks [cite: uploaded:security.ts].
-
-Error Handling: A centralized global error handler catches and formats responses for different HTTP errors, providing clear messages for issues like 404 Not Found and 400 Bad Request [cite: uploaded:errorHandler.ts].
-
-Response Formatting: All API responses are standardized with a success flag, data, and a timestamp for consistency [cite: uploaded:responseUtils.ts].
+Open a Pull Request
