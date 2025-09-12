@@ -2,12 +2,15 @@ import { Router, Request, Response } from 'express';
 import { Book, books } from '../models/Book';
 import { authors } from '../models/Author';
 import { validateBook, validateBookUniqueness } from '../middleware/validation';
+import { asyncHandler } from '../middleware/errorHandler';
+import { BadRequestError, NotFoundError } from '../types/error';
+import { ResponseUtils } from '../utils/responseUtils';
 
 const router = Router();
-let nextBookId = 5;
+let nextBookId = 12;
 
 // Create New Book - POST /books
-router.post('/', validateBook, validateBookUniqueness, (req: Request, res: Response) => {
+router.post('/', validateBook, validateBookUniqueness, asyncHandler(async (req: Request, res: Response) => {
   const { title, authorId, publishedYear, genre, isbn } = req.body;
   
   const newBook: Book = {
@@ -24,16 +27,17 @@ router.post('/', validateBook, validateBookUniqueness, (req: Request, res: Respo
   // Include author information in response
   const author = authors.find(a => a.id === authorId);
   
-  res.status(201).json({
+  const bookWithAuthor = {
     ...newBook,
     author: author ? { id: author.id, name: author.name } : null
-  });
-});
+  };
+  
+  return ResponseUtils.created(res, bookWithAuthor, 'Book created successfully');
+}));
 
 // List All Books - GET /books
-router.get('/', (req: Request, res: Response) => {
-
-  //author information
+router.get('/', asyncHandler(async (req: Request, res: Response) => {
+  // Include author information with each book
   const booksWithAuthors = books.map(book => {
     const author = authors.find(a => a.id === book.authorId);
     return {
@@ -42,52 +46,46 @@ router.get('/', (req: Request, res: Response) => {
     };
   });
   
-  res.status(200).json(booksWithAuthors);
-});
+  return ResponseUtils.success(res, booksWithAuthors, 'Books retrieved successfully');
+}));
 
 // Get Book By ID - GET /books/:id
-router.get('/:id', (req: Request, res: Response) => {
+router.get('/:id', asyncHandler(async (req: Request, res: Response) => {
   const id = parseInt(req.params.id);
   
   if (isNaN(id)) {
-    return res.status(400).json({ 
-      error: 'Invalid book ID' 
-    });
+    throw new BadRequestError('Invalid book ID');
   }
   
   const book = books.find(b => b.id === id);
   
   if (!book) {
-    return res.status(404).json({ 
-      error: 'Book not found' 
-    });
+    throw new NotFoundError('Book', id);
   }
   
-  //author information
+  // Include author information
   const author = authors.find(a => a.id === book.authorId);
   
-  res.status(200).json({
+  const bookWithAuthor = {
     ...book,
     author: author ? author : null
-  });
-});
+  };
+  
+  return ResponseUtils.success(res, bookWithAuthor, 'Book retrieved successfully');
+}));
 
 // Update Book - PUT /books/:id
-router.put('/:id', validateBook, validateBookUniqueness, (req: Request, res: Response) => {
+router.put('/:id', validateBook, validateBookUniqueness, asyncHandler(async (req: Request, res: Response) => {
   const id = parseInt(req.params.id);
   
   if (isNaN(id)) {
-    return res.status(400).json({ 
-      error: 'Invalid book ID' 
-    });
+    throw new BadRequestError('Invalid book ID');
   }
   
   const bookIndex = books.findIndex(b => b.id === id);
   
   if (bookIndex === -1) {
-    return res.status(404).json({ 
-      error: 'Book not found' 
-    });
+    throw new NotFoundError('Book', id);
   }
   
   const { title, authorId, publishedYear, genre, isbn } = req.body;
@@ -101,39 +99,34 @@ router.put('/:id', validateBook, validateBookUniqueness, (req: Request, res: Res
     isbn: isbn?.trim()
   };
   
-  // author information
+  // Include author information in response
   const author = authors.find(a => a.id === authorId);
   
-  res.status(200).json({
+  const updatedBookWithAuthor = {
     ...books[bookIndex],
     author: author ? { id: author.id, name: author.name } : null
-  });
-});
+  };
+  
+  return ResponseUtils.success(res, updatedBookWithAuthor, 'Book updated successfully');
+}));
 
 // Delete Book - DELETE /books/:id
-router.delete('/:id', (req: Request, res: Response) => {
+router.delete('/:id', asyncHandler(async (req: Request, res: Response) => {
   const id = parseInt(req.params.id);
   
   if (isNaN(id)) {
-    return res.status(400).json({ 
-      error: 'Invalid book ID' 
-    });
+    throw new BadRequestError('Invalid book ID');
   }
   
   const bookIndex = books.findIndex(b => b.id === id);
   
   if (bookIndex === -1) {
-    return res.status(404).json({ 
-      error: 'Book not found' 
-    });
+    throw new NotFoundError('Book', id);
   }
   
   const deletedBook = books.splice(bookIndex, 1)[0];
   
-  res.status(200).json({
-    message: 'Book deleted successfully',
-    book: deletedBook
-  });
-});
+  return ResponseUtils.noContent(res, 'Book deleted successfully');
+}));
 
 export default router;

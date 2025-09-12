@@ -1,12 +1,14 @@
 import { Router, Request, Response } from 'express';
 import { Author, authors } from '../models/Author';
-import { ResponseUtils } from '../utils/responseUtils';
 import { asyncHandler } from '../middleware/errorHandler';
 import { BadRequestError, NotFoundError } from '../types/error';
 import { books } from '../models/Book';
+import { ResponseUtils } from '../utils/responseUtils';
+import { parseQueryParams } from '../middleware/search';
+import { QueryProcessor } from '../utils/queryUtils';
 
 const router = Router();
-let nextAuthorId = 3;
+let nextAuthorId = 6;
 
 // Create New Author - POST /authors
 router.post('/', (req: Request, res: Response) => {
@@ -118,8 +120,9 @@ router.delete('/:id', asyncHandler(async (req: Request, res: Response) => {
 }));
 
 // List Books By an Author - GET /authors/:id/books
-router.get('/:id/books', asyncHandler(async (req: Request, res: Response) => {
+router.get('/:id/books', parseQueryParams(['id', 'title', 'publishedYear', 'genre']), asyncHandler(async (req: Request, res: Response) => {
   const id = parseInt(req.params.id);
+  const queryParams = req.queryParams!;
   
   if (isNaN(id)) {
     throw new BadRequestError('Invalid author ID');
@@ -131,15 +134,31 @@ router.get('/:id/books', asyncHandler(async (req: Request, res: Response) => {
     throw new NotFoundError('Author', id);
   }
   
+  // Get all books by this author
   const authorBooks = books.filter(book => book.authorId === id);
+  
+  // Apply search fields for books
+  const searchFields = ['title', 'genre', 'isbn'];
+  
+  // Process query with filtering, sorting, and pagination
+  const result = QueryProcessor.processQuery(authorBooks, queryParams, searchFields);
   
   const responseData = {
     author: {
       id: author.id,
-      name: author.name
+      name: author.name,
+      bio: author.bio,
+      birthYear: author.birthYear
     },
-    books: authorBooks,
-    totalBooks: authorBooks.length
+    books: result.data,
+    pagination: {
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+      totalPages: result.totalPages,
+      hasNext: result.hasNext,
+      hasPrev: result.hasPrev
+    }
   };
   
   return ResponseUtils.success(res, responseData, 'Author books retrieved successfully');

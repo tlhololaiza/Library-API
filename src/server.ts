@@ -1,7 +1,9 @@
 import express from 'express';
 import { logger } from './middleware/logger';
 import authorRoutes from './routes/authors';
-import booksRoutes from './routes/books';
+import bookRoutes from './routes/books';
+import searchRoutes from './routes/search';
+import statsRoutes from './routes/stats';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,7 +14,9 @@ app.use(logger);
 
 // Routes
 app.use('/authors', authorRoutes);
-app.use('/books', booksRoutes);
+app.use('/books', bookRoutes);
+app.use('/search', searchRoutes);
+app.use('/stats', statsRoutes);
 
 // Health check endpoint
 app.get('/', (req, res) => {

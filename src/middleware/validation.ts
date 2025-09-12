@@ -74,7 +74,7 @@ export const validateBookUniqueness = (req: Request, res: Response, next: NextFu
   const existingBook = books.find((book: any) => 
     book.title.toLowerCase() === title.toLowerCase() && 
     book.authorId === authorId &&
-    book.id !== bookId // Exclude current book when updating
+    book.id !== bookId 
   );
   
   if (existingBook) {
