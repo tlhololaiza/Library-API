@@ -1,5 +1,5 @@
 import express from 'express';
-import { logger } from './middleware/logger';
+import { logger }  from './middleware/logger';
 import authorRoutes from './routes/authors';
 import bookRoutes from './routes/books';
 import searchRoutes from './routes/search';
