@@ -1,6 +1,7 @@
 import express from 'express';
 import { logger } from './middleware/logger';
 import authorRoutes from './routes/authors';
+import bookRoutes from './routes/books';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,6 +12,7 @@ app.use(logger);
 
 // Routes
 app.use('/authors', authorRoutes);
+app.use('/books', bookRoutes);
 
 // Health check endpoint
 app.get('/', (req, res) => {
