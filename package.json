@@ -1,20 +1,30 @@
 {
   "name": "library-api",
   "version": "1.0.0",
-  "description": "building a RESTful API for a library system",
-  "main": "index.js",
+  "description": "RESTful API for managing a library system with authors and books",
+  "main": "dist/app.js",
   "scripts": {
+    "start": "node dist/server.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/tlhololaiza/Library-API.git"
-  },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "library",
+    "api",
+    "rest",
+    "typescript",
+    "express"
+  ],
+  "author": "Tlholo",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/tlhololaiza/Library-API/issues"
+  "dependencies": {
+    "express": "^4.18.2"
   },
-  "homepage": "https://github.com/tlhololaiza/Library-API#readme"
+  "devDependencies": {
+    "@types/express": "^4.17.17",
+    "@types/node": "^20.5.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.1.6"
+  }
 }
