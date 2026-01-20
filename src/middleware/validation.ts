@@ -64,21 +64,23 @@ export const validateBook = (req: Request, res: Response, next: NextFunction) =>
   next();
 };
 
-// Validation for checking if book title already exists for the same author
+// Validation for checking if book ISBN already exists (ISBN is the unique identifier)
 export const validateBookUniqueness = (req: Request, res: Response, next: NextFunction) => {
-  const { title, authorId } = req.body;
+  const { isbn } = req.body;
   const bookId = req.params.id ? parseInt(req.params.id) : undefined;
   
-  const { books } = require('../models/Book');
-  
-  const existingBook = books.find((book: any) => 
-    book.title.toLowerCase() === title.toLowerCase() && 
-    book.authorId === authorId &&
-    book.id !== bookId 
-  );
-  
-  if (existingBook) {
-    throw new ConflictError('A book with this title already exists for this author');
+  // Only check ISBN if it's provided
+  if (isbn) {
+    const { books } = require('../models/Book');
+    
+    const existingBook = books.find((book: any) => 
+      book.isbn && book.isbn.toLowerCase() === isbn.toLowerCase() &&
+      book.id !== bookId 
+    );
+    
+    if (existingBook) {
+      throw new ConflictError('A book with this ISBN already exists');
+    }
   }
   
   next();
