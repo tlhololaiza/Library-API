@@ -6,19 +6,14 @@ import { books } from '../models/Book';
 import { ResponseUtils } from '../utils/responseUtils';
 import { parseQueryParams } from '../middleware/search';
 import { QueryProcessor } from '../utils/queryUtils';
+import { validateAuthor } from '../middleware/validation';
 
 const router = Router();
 let nextAuthorId = 6;
 
 // Create New Author - POST /authors
-router.post('/', (req: Request, res: Response) => {
+router.post('/', validateAuthor, asyncHandler(async (req: Request, res: Response) => {
   const { name, bio, birthYear } = req.body;
-  
-  if (!name) {
-    return res.status(400).json({ 
-      error: 'Name is required' 
-    });
-  }
   
   const newAuthor: Author = {
     id: nextAuthorId++,
@@ -29,60 +24,46 @@ router.post('/', (req: Request, res: Response) => {
   
   authors.push(newAuthor);
   
-  res.status(201).json(newAuthor);
-});
+  return ResponseUtils.created(res, newAuthor, 'Author created successfully');
+}));
 
 // List All Authors - GET /authors
-router.get('/', (req: Request, res: Response) => {
-  res.status(200).json(authors);
-});
+router.get('/', asyncHandler(async (req: Request, res: Response) => {
+  return ResponseUtils.success(res, authors, 'Authors retrieved successfully');
+}));
 
 // Get Author By ID - GET /authors/:id
-router.get('/:id', (req: Request, res: Response) => {
+router.get('/:id', asyncHandler(async (req: Request, res: Response) => {
   const id = parseInt(req.params.id);
   
   if (isNaN(id)) {
-    return res.status(400).json({ 
-      error: 'Invalid author ID' 
-    });
+    throw new BadRequestError('Invalid author ID');
   }
   
   const author = authors.find(a => a.id === id);
   
   if (!author) {
-    return res.status(404).json({ 
-      error: 'Author not found' 
-    });
+    throw new NotFoundError('Author', id);
   }
   
-  res.status(200).json(author);
-});
+  return ResponseUtils.success(res, author, 'Author retrieved successfully');
+}));
 
 // Update Author - PUT /authors/:id
-router.put('/:id', (req: Request, res: Response) => {
+router.put('/:id', validateAuthor, asyncHandler(async (req: Request, res: Response) => {
   const id = parseInt(req.params.id);
   
   if (isNaN(id)) {
-    return res.status(400).json({ 
-      error: 'Invalid author ID' 
-    });
+    throw new BadRequestError('Invalid author ID');
   }
   
   const authorIndex = authors.findIndex(a => a.id === id);
   
   if (authorIndex === -1) {
-    return res.status(404).json({ 
-      error: 'Author not found' 
-    });
+    throw new NotFoundError('Author', id);
   }
   
   const { name, bio, birthYear } = req.body;
-  
-  if (!name) {
-    return res.status(400).json({ 
-      error: 'Name is required' 
-    });
-  }
   
   authors[authorIndex] = {
     ...authors[authorIndex],
@@ -91,8 +72,8 @@ router.put('/:id', (req: Request, res: Response) => {
     birthYear
   };
   
-  res.status(200).json(authors[authorIndex]);
-});
+  return ResponseUtils.success(res, authors[authorIndex], 'Author updated successfully');
+}));
 
 // Delete Author - DELETE /authors/:id
 router.delete('/:id', asyncHandler(async (req: Request, res: Response) => {
