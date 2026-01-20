@@ -1,0 +1,20 @@
+{
+  "name": "library-api",
+  "version": "1.0.0",
+  "description": "building a RESTful API for a library system",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tlhololaiza/Library-API.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tlhololaiza/Library-API/issues"
+  },
+  "homepage": "https://github.com/tlhololaiza/Library-API#readme"
+}
