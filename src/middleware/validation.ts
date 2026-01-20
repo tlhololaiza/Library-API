@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { authors } from '../models/Author';
+import { ConflictError } from '../types/error';
 
 // Validation for Author creation/update
 export const validateAuthor = (req: Request, res: Response, next: NextFunction) => {
@@ -73,13 +74,11 @@ export const validateBookUniqueness = (req: Request, res: Response, next: NextFu
   const existingBook = books.find((book: any) => 
     book.title.toLowerCase() === title.toLowerCase() && 
     book.authorId === authorId &&
-    book.id !== bookId 
+    book.id !== bookId // Exclude current book when updating
   );
   
   if (existingBook) {
-    return res.status(409).json({
-      error: 'A book with this title already exists for this author'
-    });
+    throw new ConflictError('A book with this title already exists for this author');
   }
   
   next();

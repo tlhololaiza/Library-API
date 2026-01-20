@@ -1,5 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { Author, authors } from '../models/Author';
+import { ResponseUtils } from '../utils/responseUtils';
+import { asyncHandler } from '../middleware/errorHandler';
+import { BadRequestError, NotFoundError } from '../types/error';
 import { books } from '../models/Book';
 
 const router = Router();
@@ -90,67 +93,56 @@ router.put('/:id', (req: Request, res: Response) => {
 });
 
 // Delete Author - DELETE /authors/:id
-router.delete('/:id', (req: Request, res: Response) => {
+router.delete('/:id', asyncHandler(async (req: Request, res: Response) => {
   const id = parseInt(req.params.id);
   
   if (isNaN(id)) {
-    return res.status(400).json({ 
-      error: 'Invalid author ID' 
-    });
+    throw new BadRequestError('Invalid author ID');
   }
   
   const authorIndex = authors.findIndex(a => a.id === id);
   
   if (authorIndex === -1) {
-    return res.status(404).json({ 
-      error: 'Author not found' 
-    });
+    throw new NotFoundError('Author', id);
   }
   
   // Check if author has books
   const authorHasBooks = books.some(book => book.authorId === id);
   if (authorHasBooks) {
-    return res.status(400).json({
-      error: 'Cannot delete author with existing books. Delete associated books first.'
-    });
+    throw new BadRequestError('Cannot delete author with existing books. Delete associated books first.');
   }
   
   const deletedAuthor = authors.splice(authorIndex, 1)[0];
   
-  res.status(200).json({
-    message: 'Author deleted successfully',
-    author: deletedAuthor
-  });
-});
+  return ResponseUtils.noContent(res, 'Author deleted successfully');
+}));
 
 // List Books By an Author - GET /authors/:id/books
-router.get('/:id/books', (req: Request, res: Response) => {
+router.get('/:id/books', asyncHandler(async (req: Request, res: Response) => {
   const id = parseInt(req.params.id);
   
   if (isNaN(id)) {
-    return res.status(400).json({ 
-      error: 'Invalid author ID' 
-    });
+    throw new BadRequestError('Invalid author ID');
   }
   
   const author = authors.find(a => a.id === id);
   
   if (!author) {
-    return res.status(404).json({ 
-      error: 'Author not found' 
-    });
+    throw new NotFoundError('Author', id);
   }
   
   const authorBooks = books.filter(book => book.authorId === id);
   
-  res.status(200).json({
+  const responseData = {
     author: {
       id: author.id,
       name: author.name
     },
     books: authorBooks,
     totalBooks: authorBooks.length
-  });
-});
+  };
+  
+  return ResponseUtils.success(res, responseData, 'Author books retrieved successfully');
+}));
 
 export default router;
