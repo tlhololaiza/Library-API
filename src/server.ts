@@ -1,5 +1,6 @@
 import express from 'express';
 import { logger }  from './middleware/logger';
+import { globalErrorHandler, notFoundHandler } from './middleware/errorHandler';
 import authorRoutes from './routes/authors';
 import bookRoutes from './routes/books';
 import searchRoutes from './routes/search';
@@ -26,6 +27,12 @@ app.get('/', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+// 404 handler for unmatched routes
+app.use(notFoundHandler);
+
+// Global error handler (must be last)
+app.use(globalErrorHandler);
 
 // Start server
 app.listen(PORT, () => {
